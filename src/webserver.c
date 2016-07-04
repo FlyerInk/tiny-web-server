@@ -1,6 +1,7 @@
 #include "csapp.h"
 
 void do_it(int connectfd);
+void *thread_routine(void *arg);
 
 static const int DEFAULT_PORT = 8007;
 
@@ -21,7 +22,7 @@ int main(int argc, char const *argv[]){
             break;
         }
         case 2: {
-            port = atoi(argv[1]);;
+            port = atoi(argv[1]);
             break;
         }
         default:
@@ -49,25 +50,33 @@ int main(int argc, char const *argv[]){
     struct hostent *hp;
     char *hp_name;
 
-
+    pthread_t tid;
+    int *fdp = NULL;
     while (1) {
-        printf("------ ready to accept, current pid = %d ------\n", getpid());
-        connectfd = accept(listenfd, (SA *) &addr, (socklen_t *)&addrlen);
+        printf("------ ready to accept ------\n");
+        fdp = (int *)malloc(sizeof(int));
+        *fdp = accept(listenfd, (SA *) &addr, (socklen_t *)&addrlen);
+        if ((*fdp) > 0) {
+            pthread_create(&tid, NULL, thread_routine, (void *)fdp);
+        } else {
+            printf("error, accept *fdp  < 0");
+            break;
+        }
         hp = gethostbyaddr((const char *) &addr.sin_addr.s_addr, sizeof(addr.sin_addr.s_addr), AF_INET);
         hp_name = inet_ntoa(addr.sin_addr);
         printf("server connected to %s (%s)\n", hp->h_name, hp_name);
-
-        if (fork() == 0) {  /* child process, close the listening fd */
-            printf("in child, pid: %d, ppid: %d\n", getpid(), getppid());
-            close(listenfd);
-            do_it(connectfd);
-            close(connectfd);
-            exit(0);
-        }
-        close(connectfd);   /* parent process, close the connected fd */
     }
     printf("------ exit ------\n");
     return 0;
+}
+
+void *thread_routine(void *arg) {
+    int connectfd = *((int *)arg);
+    pthread_detach(pthread_self());
+    free(arg);
+    do_it(connectfd);
+    close(connectfd);
+    return NULL;
 }
 
 
