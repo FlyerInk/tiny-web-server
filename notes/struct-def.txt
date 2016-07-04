@@ -1,0 +1,143 @@
+#include <string.h>
+void *memcpy(void *dest, const void *src, size_t n);
+void *memset(void *dest, int c, size_t n);
+
+
+#include <stdint.h>
+
+typedef unsigned char           uint8_t
+typedef unsigned short int      uint16_t;
+typedef unsigned int            uint32_t;
+
+#if __WORDSIZE == 64
+typedef unsigned long int       uint64_t;
+#else
+__extension__
+typedef unsigned long long int  uint64_t;
+#endif
+
+typedef int ssize_t
+typedef unsigned int size_t;
+
+
+typedef int socklen_t
+
+
+#include <netinet/in.h>
+
+typedef uint32_t in_addr_t;
+typedef uint16_t in_port_t;
+
+typedef unsigned short int sa_family_t;
+
+#define __SOCKADDR_COMMON(sa_prefix) \
+sa_family_t sa_prefix##family
+
+struct in_addr {
+    in_addr_t s_addr; /* ip address in network byte order */
+}
+
+
+struct sockaddr_in {
+    __SOCKADDR_COMMON(sin_);
+    in_port_t sin_port;
+    struct in_addr sin_addr;
+    /* Pad to size of `struct sockaddr'.  用于填充的0字节 */
+    unsigned char sin_zero[sizeof (struct sockaddr) -
+                            __SOCKADDR_COMMON_SIZE -
+                            sizeof (in_port_t) -
+                            sizeof (struct in_addr)];
+}
+
+/*
+struct sockaddr_in {
+    sa_family_t sin_family;
+    in_port_t sin_port;
+
+}
+
+*/
+
+#include <arpa/inet.h>
+extern int h_errno;
+
+char *inet_ntoa(struct in_addr in);                 /* in_addr to dot-decimal */
+int inet_aton(const char *cp, struct in_addr *inp); /* dot-decimal to in_addr */
+
+int htonl(uint32_t hostlong);
+int htons(uint16_t hostshort);
+
+int ntohl(uint32_t netlong);
+int ntohs(uint16_t netshort);
+
+
+struct hostent *gethostbyname(const char *host);
+
+
+#include <sys/socket.h>
+struct sockaddr {
+    __SOCKADDR_COMMON (sa_);    /* Common data: address family and length.  协议族*/
+    char sa_data[14];           /* Address data.  地址+端口号*/
+};
+
+/*
+struct sockaddr {
+    unsigned short int sa_family;
+    char sa_data[14];
+}
+*/
+
+
+struct hostent *gethostbyaddr(const void *addr, socklen_t len, int type); /* now type is always zero */
+
+
+// default it is active as the client
+int socket(int domain, int type, int protocol);
+
+int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+
+//
+int bind(int sockfd, );
+
+// make it passive
+int listen(int sockfd, int backlog);
+
+// return a non-negative integer as the connected descriptor
+int accept(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+
+int close(int sockfd);
+
+
+// for client
+socket --> connect --> close
+
+// for server
+socket --> bind --> listen --> accept -- > close
+
+
+#include <stdlib.h>
+int atoi(const char *np);
+long atol(const char *np);
+long long atoll(const char *np);
+
+double atof(const char *np);
+
+
+#include <netdb.h>
+
+struct hostent {
+    char *h_name;
+    char **h_aliases;
+    int h_addrtype;
+    int h_length;
+    char **h_addr_list;
+}
+
+
+*/
+
+
+
+
+
+
